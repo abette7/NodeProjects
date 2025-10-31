@@ -27,22 +27,32 @@ function formatTitle(filename) {
   const withoutExt = filename.split('.')[0];
   const lastUnderscoreIndex = withoutExt.lastIndexOf('_');
   
+  function formatPart(text) {
+    // Find the Roman numeral that appears just before an underscore
+    const parts = text.split('_');
+    return parts.map((part, index) => {
+      // Check if this part ends with a Roman numeral
+      const match = part.match(/^(.*?)\s*(I{1,3}|IV|VI{1,3}|IX|X)$/i);
+      if (match) {
+        // Join the base text in title case with the uppercase Roman numeral
+        const [, base, romanNumeral] = match;
+        return base.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) + ' ' + romanNumeral.toUpperCase();
+      }
+      // Regular title case for non-Roman numeral parts
+      return part.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    }).join(' ');
+  }
+  
   if(lastUnderscoreIndex === -1) {
-    return withoutExt.split('_').map(word => 
-      word.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
-    ).join(' ');
+    return formatPart(withoutExt);
   }
   
   const mainPart = withoutExt.substring(0, lastUnderscoreIndex);
   const subPart = withoutExt.substring(lastUnderscoreIndex + 1);
   
   return {
-    main: mainPart.split('_').map(word => 
-      word.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
-    ).join(' '),
-    sub: subPart.split('_').map(word => 
-      word.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
-    ).join(' ')
+    main: formatPart(mainPart),
+    sub: formatPart(subPart)
   };
 }
 
@@ -73,12 +83,18 @@ function updateCoverflow() {
   });
 }
 
+// Store filtered images globally so we can use them in other functions
+let validImages = [];
+
 function renderCoverflow() {
   if(images.length === 0) return;
   
   clearChildren(coverflow);
   
-  images.forEach((image, idx) => {
+  // Update the global validImages
+  validImages = images.filter(img => /\.(jpe?g|png|gif|webp)$/i.test(img.name));
+  
+  validImages.forEach((image, idx) => {
     const t = document.createElement('div');
     t.className = 'thumb';
     
@@ -100,11 +116,11 @@ function renderCoverflow() {
 }
 
 function showImage(index) {
-  const len = images.length;
+  const len = validImages.length;
   if(len === 0 || isAnimating) return;
   
   currentIndex = wrapIndex(index, len);
-  const image = images[currentIndex];
+  const image = validImages[currentIndex];
   const fallbackIndicator = document.getElementById('fallbackIndicator');
   const activeTitle = document.getElementById('activeTitle');
   
@@ -144,7 +160,10 @@ async function loadSet(name, btnEl) {
   currentSet = name;
   images = await api(`/api/sets/${encodeURIComponent(name)}/images`);
   
-  if(images.length === 0) { 
+  // Pre-filter images before proceeding
+  validImages = images.filter(img => /\.(jpe?g|png|gif|webp)$/i.test(img.name));
+  
+  if(validImages.length === 0) { 
     mainImage.src = '';
     coverflow.innerHTML = '(no images)';
     return;
