@@ -56,6 +56,8 @@ app.get('/api/sets/:setName/images', async (req, res) => {
     const images = [];
     for (const f of swatchEntries) {
       if (!f.isFile()) continue;
+      // Skip non-image files
+      if (!/\.(jpe?g|png|gif|webp)$/i.test(f.name)) continue;
       const name = f.name;
       const swatchUrl = path.posix.join('/images', 'Styles', setName, 'Swatches', name);
 
