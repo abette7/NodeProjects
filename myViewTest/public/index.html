@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Image Viewer with Coverflow</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header>
+      <h1>Image Viewer</h1>
+      <nav id="setsNav"></nav>
+    </header>
+
+    <main>
+      <section id="viewer">
+        <img id="mainImage" src="" alt="Selected" />
+        <div id="fallbackIndicator">Using swatch image</div>
+      </section>
+
+      <div id="activeTitle"></div>
+
+      <section id="coverflowWrap">
+        <div id="coverflow" aria-label="Coverflow"></div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
